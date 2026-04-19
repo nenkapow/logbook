@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <title>Generator Lisensi Agen Gas v2 (Anti Error)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-900 text-white min-h-screen flex items-center justify-center p-4">
+    <div class="bg-slate-800 p-8 rounded-xl shadow-2xl w-full max-w-2xl border border-slate-700">
+        <h1 class="text-2xl font-bold mb-2 text-green-400">🔐 Generator Lisensi v2</h1>
+        <p class="text-gray-400 text-sm mb-6">Versi baru: Bisa baca format config langsung dari Firebase tanpa error.</p>
+        
+        <div class="mb-4">
+            <label class="block text-sm font-bold mb-2">1. Paste Config Firebase di sini:</label>
+            <p class="text-xs text-gray-500 mb-2">Copy aja semua kotak kode dari Firebase, gak perlu diedit.</p>
+            <textarea id="inputConfig" rows="8" class="w-full p-3 bg-slate-900 rounded border border-slate-600 font-mono text-sm focus:outline-none focus:border-green-500 placeholder-gray-600" placeholder="Paste di sini...
+const firebaseConfig = {
+  apiKey: 'AIzaSy...',
+  ...
+};"></textarea>
+        </div>
+
+        <button onclick="generate()" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded mb-6 shadow-lg transform transition active:scale-95">BUAT KODE LISENSI 🚀</button>
+
+        <div class="mb-4 hidden" id="resultArea">
+            <label class="block text-sm font-bold mb-2 text-green-300">2. Kode Lisensi Siap Kirim:</label>
+            <div class="relative">
+                <textarea id="outputCode" rows="6" readonly class="w-full p-3 bg-black text-green-500 rounded border border-green-900 font-mono text-xs break-all shadow-inner"></textarea>
+                <button onclick="copyResult()" class="absolute top-2 right-2 bg-slate-700 hover:bg-slate-600 text-xs px-3 py-1 rounded text-white font-bold border border-slate-500">Copy</button>
+            </div>
+            <div class="mt-4 p-3 bg-yellow-900/30 border border-yellow-700 rounded text-yellow-200 text-xs">
+                <strong>Instruksi ke Klien:</strong><br>
+                "Pak, silakan copy kode panjang di atas, lalu paste ke dalam aplikasi saat diminta kode aktivasi."
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function generate() {
+            const raw = document.getElementById('inputConfig').value.trim();
+            const output = document.getElementById('outputCode');
+            const resultArea = document.getElementById('resultArea');
+            
+            if(!raw) return alert("Kosong bro! Paste dulu config-nya.");
+
+            try {
+                // LOGIKA BARU: Cari kurung kurawal { ... }
+                // Ini biar bisa nangkep objectnya doang, ngebuang 'const ... =' sampah lainnya
+                const firstBrace = raw.indexOf('{');
+                const lastBrace = raw.lastIndexOf('}');
+                
+                if (firstBrace === -1 || lastBrace === -1) {
+                    throw new Error("Gak nemu kurung kurawal { } di teks yang lu paste.");
+                }
+                
+                // Ambil string objectnya aja
+                let objStr = raw.substring(firstBrace, lastBrace + 1);
+
+                // Trik Jitu: Pake 'new Function' buat maksa string JS jadi Object beneran
+                // Ini bakal otomatis ngerti format { apiKey: "..." } tanpa error
+                const obj = new Function("return " + objStr)();
+
+                // Validasi dikit biar yakin itu config firebase
+                if(!obj.apiKey || !obj.projectId) {
+                    if(!confirm("⚠️ Sepertinya ini bukan Config Firebase lengkap (kurang apiKey/projectId).\nYakin mau lanjut generate?")) return;
+                }
+
+                // Encode ke Base64
+                const code = btoa(JSON.stringify(obj));
+                
+                output.value = code;
+                resultArea.classList.remove('hidden');
+                
+            } catch (e) {
+                console.error(e);
+                alert("❌ Gagal Baca Config!\n\nPastikan lu copy semua bagian yang ada di dalam { ... }\n\nDetail Error: " + e.message);
+            }
+        }
+
+        function copyResult() {
+            const copyText = document.getElementById("outputCode");
+            copyText.select();
+            document.execCommand("copy");
+            // Efek visual dikit
+            const btn = event.target;
+            const oriText = btn.innerText;
+            btn.innerText = "Copied!";
+            setTimeout(() => btn.innerText = oriText, 2000);
+        }
+    </script>
+</body>
+</html>
