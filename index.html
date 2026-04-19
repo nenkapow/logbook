@@ -812,8 +812,12 @@
 
         // --- ROOT ---
         const Root = () => {
-            const [config, setConfig] = useState(null);
-            useEffect(() => { try { const s = localStorage.getItem('agen_gas_config'); if (s) setConfig(JSON.parse(s)); } catch (e) { } }, []);
+            // Lazy initializer: baca localStorage SEBELUM render pertama, bukan setelah
+            // Ini mencegah flash SetupScreen walau config sudah ada
+            const [config, setConfig] = useState(() => {
+                try { const s = localStorage.getItem('agen_gas_config'); return s ? JSON.parse(s) : null; }
+                catch (e) { return null; }
+            });
             return (
                 <>
                     {!config ? <SetupScreen onSave={setConfig} /> : <MainApp config={config} />}
