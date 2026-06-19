@@ -118,17 +118,10 @@
         window._installPrompt = null;
         window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); window._installPrompt = e; });
 
-        // Service Worker — halaman ini mendaftar dirinya sendiri sebagai SW
-        // Trik: SW mode dideteksi dari typeof window, sehingga satu file bisa jadi SW
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register(location.href, { scope: './' })
-                .catch(() => {
-                    // Fallback blob jika browser blok registrasi page-as-SW
-                    const swCode = `const C='agen-gas-v1';self.addEventListener('install',e=>{self.skipWaiting();e.waitUntil(caches.open(C).then(c=>c.add(location.pathname)))});self.addEventListener('activate',e=>e.waitUntil(clients.claim()));self.addEventListener('fetch',e=>e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request))));`;
-                    const b = new Blob([swCode], { type: 'text/javascript' });
-                    navigator.serviceWorker.register(URL.createObjectURL(b)).catch(console.error);
-                });
-        }
+        // Service Worker dimatikan untuk versi GitHub Pages single-file.
+        // Penyebab error: HTML tidak boleh didaftarkan sebagai service worker,
+        // dan Chrome tidak mendukung service worker dari blob: URL.
+        // App tetap aman dipakai online tanpa blok ini.
     </script>
 </head>
 <body class="bg-zinc-950 font-sans">
