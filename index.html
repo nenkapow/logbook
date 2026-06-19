@@ -14,9 +14,9 @@
 
     <!-- ENGINE -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone@7.24.7/babel.min.js"></script>
 
     <!-- FIREBASE COMPAT -->
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
@@ -37,8 +37,27 @@
 
     <script>
         window.onerror = function(msg, url, line) {
+            const message = String(msg || '');
+            const source = String(url || '');
+
+            // Abaikan error dari extension browser / wallet / injected script.
+            // Ini sering muncul di DevTools dan sebelumnya ikut tampil di app.
+            const ignored = [
+                'chrome-extension://',
+                'moz-extension://',
+                'evmAsk',
+                'instantTrade',
+                'contentScript',
+                'script.bundle',
+                'github-copilot',
+                'Cannot redefine property: ethereum',
+                'sender_getProviderState',
+                'Content script readiness timeout'
+            ];
+            if (ignored.some(x => source.includes(x) || message.includes(x))) return true;
+
             const e = document.getElementById('error-display');
-            if (e) { e.style.display = 'block'; e.innerHTML = `<div class="p-2 border-b border-red-800">❌ ${msg} (Line ${line})</div>` + e.innerHTML; }
+            if (e) { e.style.display = 'block'; e.innerHTML = `<div class="p-2 border-b border-red-800">❌ ${message} (Line ${line})</div>` + e.innerHTML; }
         };
 
         // Generate PNG icon tabung 3kg via Canvas (Chrome butuh PNG untuk install PWA)
@@ -128,7 +147,7 @@
     <div id="root"></div>
     <div id="error-display" style="display:none; position:fixed; bottom:0; left:0; right:0; background:black; color:#ff5555; font-size:10px; z-index:9999; max-height:100px; overflow:auto; opacity:0.9;"></div>
 
-    <script type="text/babel">
+    <script type="text/babel" data-presets="env,react">
         const { useState, useEffect } = React;
         const COL_CUSTOMERS = 'pelanggan_gas';
         const DOC_QUEUE = 'antrian_live';
