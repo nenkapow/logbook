@@ -1,4 +1,4 @@
-const CACHE_NAME = 'agen-gas-pro-v3';
+const CACHE_NAME = 'agen-gas-pro-v4';
 const APP_SHELL = [
   './',
   './index.html',

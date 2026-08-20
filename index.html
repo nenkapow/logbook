@@ -8,9 +8,9 @@
     <!-- PWA -->
     <meta name="theme-color" content="#09090b">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <link id="app-icon" rel="apple-touch-icon" href="./icon-512.png?v=3">
-    <link id="fav-icon" rel="icon" type="image/png" href="./icon-192.png?v=3">
-    <link id="manifest-placeholder" rel="manifest" href="./manifest.webmanifest?v=3">
+    <link id="app-icon" rel="apple-touch-icon" href="./icon-512.png?v=4">
+    <link id="fav-icon" rel="icon" type="image/png" href="./icon-192.png?v=4">
+    <link id="manifest-placeholder" rel="manifest" href="./manifest.webmanifest?v=4">
 
     <!-- ENGINE -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -122,7 +122,7 @@
 
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js?v=3', { scope: './' })
+                navigator.serviceWorker.register('./sw.js?v=4', { scope: './' })
                     .catch(err => console.warn('Service worker register skipped:', err));
             });
         }
@@ -136,6 +136,30 @@
         const { useState, useEffect } = React;
         const COL_CUSTOMERS = 'pelanggan_gas';
         const DOC_QUEUE = 'antrian_live';
+
+        // Membaca tanggal lahir dari digit ke-7 s.d. ke-12 NIK.
+        // Untuk perempuan, angka tanggal pada NIK ditambah 40.
+        const getBirthDateFromNik = (nik) => {
+            const digits = String(nik || '').replace(/\D/g, '');
+            if (digits.length !== 16) return null;
+
+            let day = Number(digits.slice(6, 8));
+            const month = Number(digits.slice(8, 10));
+            const shortYear = Number(digits.slice(10, 12));
+            if (day > 40) day -= 40;
+
+            const currentYear = new Date().getFullYear();
+            const currentShortYear = currentYear % 100;
+            const year = shortYear <= currentShortYear ? 2000 + shortYear : 1900 + shortYear;
+            const daysInMonth = new Date(year, month, 0).getDate();
+            if (month < 1 || month > 12 || day < 1 || day > daysInMonth) return null;
+
+            const pad = value => String(value).padStart(2, '0');
+            return {
+                display: `${pad(day)}-${pad(month)}-${year}`,
+                iso: `${year}-${pad(month)}-${pad(day)}`
+            };
+        };
 
         // Icon tabung mini untuk dipakai di dalam app
         const TabungIcon = ({ size = 24, className = "" }) => (
@@ -309,7 +333,8 @@
                                                     <span className={`font-bold text-sm truncate ${nameCls}`}>{c.name}</span>
                                                     {isDone && !inQueue && <span className="text-[9px] bg-zinc-800 text-zinc-500 px-1.5 py-0.5 rounded-full font-bold flex-shrink-0 border border-zinc-700">Selesai</span>}
                                                 </div>
-                                                <div className="text-zinc-600 text-xs font-mono mb-1.5">{c.nik}</div>
+                                                <div className="text-zinc-600 text-xs font-mono">{c.nik}</div>
+                                                <div className="text-amber-500/75 text-[10px] font-mono mb-1.5">Lahir: {getBirthDateFromNik(c.nik)?.display || '-'}</div>
                                                 <div className="flex items-center gap-1">
                                                     {[...Array(4)].map((_, i) => (
                                                         <div key={i} className={`h-1 flex-1 rounded-full transition-colors ${i < (c.quota || 0) ? (isFull ? 'bg-red-500' : 'bg-indigo-500') : 'bg-zinc-700'}`} />
@@ -379,6 +404,7 @@
             };
 
             const current = customers.find(c => c.id === queueIds[0]);
+            const currentBirthDate = getBirthDateFromNik(current?.nik);
 
             return (
                 <div className="flex flex-col h-full bg-zinc-950">
@@ -437,6 +463,13 @@
                                         <div className="bg-zinc-950 border-2 border-dashed border-zinc-700 rounded-2xl p-4 text-center mb-5">
                                             <p className="text-[10px] text-zinc-600 font-black uppercase tracking-widest mb-1">NIK</p>
                                             <span className="font-mono text-2xl font-black tracking-widest text-zinc-100">{current?.nik}</span>
+                                            <div className="border-t border-zinc-800 mt-3 pt-3">
+                                                <p className="text-[10px] text-zinc-600 font-black uppercase tracking-widest mb-1">Tanggal Lahir</p>
+                                                <span className={`font-mono text-xl font-black tracking-wider ${currentBirthDate ? 'text-amber-300' : 'text-red-400'}`}>
+                                                    {currentBirthDate?.display || 'NIK TIDAK VALID'}
+                                                </span>
+                                                {currentBirthDate && <p className="text-[9px] text-zinc-700 mt-1 font-bold">Otomatis dibaca dari NIK</p>}
+                                            </div>
                                         </div>
 
                                         {!lastCopied ? (
@@ -470,6 +503,7 @@
                                                     <div className="flex-1 min-w-0">
                                                         <p className="text-zinc-200 font-bold text-sm truncate">{c.name}</p>
                                                         <p className="text-zinc-600 text-xs font-mono">{c.nik}</p>
+                                                        <p className="text-amber-500/70 text-[10px] font-mono">Lahir: {getBirthDateFromNik(c.nik)?.display || '-'}</p>
                                                     </div>
                                                     <button onClick={() => toggleQueue(c)} className="w-8 h-8 bg-zinc-800 text-red-500 rounded-lg flex items-center justify-center hover:bg-red-950/50 transition-colors flex-shrink-0">
                                                         <Icon name="x" size={14} />
@@ -496,11 +530,13 @@
 
             const handleSave = async () => {
                 if (!form.name || !form.nik) return alert("Isi nama dan NIK!");
+                const cleanNik = String(form.nik).replace(/\D/g, '');
+                if (cleanNik.length !== 16 || !getBirthDateFromNik(cleanNik)) return alert("NIK harus 16 digit dan memuat tanggal lahir yang valid!");
                 setSaving(true);
                 try {
-                    const d = { name: form.name.toUpperCase(), nik: form.nik };
+                    const d = { name: form.name.toUpperCase(), nik: cleanNik };
                     if (editId) { await db.collection(COL_CUSTOMERS).doc(editId).update(d); setEditId(null); }
-                    else { if (customers.some(c => c.nik === form.nik)) throw new Error("NIK sudah ada!"); await db.collection(COL_CUSTOMERS).add({ ...d, quota: 0, lastTx: '-', favorit: false }); }
+                    else { if (customers.some(c => String(c.nik).replace(/\D/g, '') === cleanNik)) throw new Error("NIK sudah ada!"); await db.collection(COL_CUSTOMERS).add({ ...d, quota: 0, lastTx: '-', favorit: false }); }
                     setForm({ name: '', nik: '' });
                     alert("Sukses!");
                 } catch (e) { alert(e.message); }
@@ -556,9 +592,17 @@
                             <input placeholder="Nama Lengkap"
                                 className="w-full p-3 bg-zinc-950 border border-zinc-800 text-zinc-100 placeholder-zinc-600 rounded-xl mb-2 outline-none focus:border-blue-500 transition-colors text-sm"
                                 value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />
-                            <input placeholder="NIK"
-                                className="w-full p-3 bg-zinc-950 border border-zinc-800 text-zinc-100 placeholder-zinc-600 rounded-xl mb-3 outline-none focus:border-blue-500 transition-colors text-sm font-mono"
-                                value={form.nik} onChange={e => setForm({ ...form, nik: e.target.value })} />
+                            <input placeholder="NIK (16 digit)" inputMode="numeric" maxLength={16}
+                                className="w-full p-3 bg-zinc-950 border border-zinc-800 text-zinc-100 placeholder-zinc-600 rounded-xl mb-2 outline-none focus:border-blue-500 transition-colors text-sm font-mono"
+                                value={form.nik} onChange={e => setForm({ ...form, nik: e.target.value.replace(/\D/g, '').slice(0, 16) })} />
+                            {form.nik && (
+                                <div className={`mb-3 px-3 py-2.5 rounded-xl border ${getBirthDateFromNik(form.nik) ? 'bg-amber-950/20 border-amber-800/40' : 'bg-red-950/20 border-red-900/40'}`}>
+                                    <p className="text-[9px] text-zinc-600 font-black uppercase tracking-widest">Tanggal Lahir dari NIK</p>
+                                    <p className={`font-mono text-base font-black mt-0.5 ${getBirthDateFromNik(form.nik) ? 'text-amber-300' : 'text-red-400'}`}>
+                                        {getBirthDateFromNik(form.nik)?.display || 'Lengkapi NIK yang valid'}
+                                    </p>
+                                </div>
+                            )}
                             <div className="flex gap-2">
                                 <button onClick={handleSave} disabled={saving}
                                     className={`flex-1 py-3 rounded-xl font-black text-white text-sm active:scale-95 transition-all ${editId ? 'bg-amber-500' : 'bg-blue-600'}`}>
@@ -582,6 +626,7 @@
                                                 <p className="font-bold text-sm truncate text-zinc-100">{c.name}</p>
                                             </div>
                                             <p className="text-xs text-zinc-600 font-mono">{c.nik}</p>
+                                            <p className="text-[10px] text-amber-500/80 font-mono mt-0.5">Lahir: {getBirthDateFromNik(c.nik)?.display || '-'}</p>
                                             <div className="flex items-center gap-1 mt-1.5">
                                                 {[...Array(4)].map((_, i) => (
                                                     <div key={i} className={`h-1 w-5 rounded-full ${i < (c.quota || 0) ? 'bg-indigo-500' : 'bg-zinc-700'}`} />
@@ -716,7 +761,7 @@
                             AKTIFKAN
                         </button>
                     </div>
-                    <p className="text-zinc-800 text-[11px] mt-6 font-medium">v3.0 PWA · Hubungi agen untuk mendapatkan kode</p>
+                    <p className="text-zinc-800 text-[11px] mt-6 font-medium">v4.0 PWA · Hubungi agen untuk mendapatkan kode</p>
                 </div>
             );
         };

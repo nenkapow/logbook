@@ -8,6 +8,7 @@ Aplikasi kasir & antrian LPG 3kg berbasis web untuk agen gas. Dibangun sebagai *
 
 - **Kasir & Antrian** — tambah pelanggan ke antrian, proses setor satu per satu
 - **Copy NIK otomatis** — sekali tap, NIK langsung tercopy ke clipboard untuk paste ke aplikasi GAS
+- **Tanggal lahir dari NIK** — tanggal lahir tampil otomatis di bawah NIK, termasuk perhitungan khusus NIK perempuan
 - **Favorit / Bintang** — tandai pelanggan prioritas agar selalu muncul di atas, tanpa sentuh kode
 - **Database pelanggan** — tambah, edit, hapus data pelanggan langsung dari app
 - **Kuota tracker** — pantau sisa kuota bulanan tiap pelanggan (maks 4x/bulan)
@@ -107,6 +108,8 @@ service cloud.firestore {
 | `weeklyDone` | boolean | Sudah belanja minggu ini |
 | `favorit` | boolean | Ditandai sebagai prioritas |
 | `lastTx` | string | Tanggal transaksi terakhir |
+
+Tanggal lahir tidak disimpan sebagai field terpisah. Aplikasi membacanya otomatis dari 6 digit tanggal pada NIK sehingga data lama langsung kompatibel.
 
 **Document: `system/antrian_live`**
 | Field | Tipe | Keterangan |
