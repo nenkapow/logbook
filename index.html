@@ -12,6 +12,14 @@
     <link id="fav-icon" rel="icon" type="image/png" href="./icon-192.png?v=4">
     <link id="manifest-placeholder" rel="manifest" href="./manifest.webmanifest?v=4">
 
+    <!-- RESOURCE HINTS -->
+    <link rel="preconnect" href="https://cdn.tailwindcss.com">
+    <link rel="preconnect" href="https://unpkg.com" crossorigin>
+    <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+    <link rel="dns-prefetch" href="//cdn.tailwindcss.com">
+    <link rel="dns-prefetch" href="//unpkg.com">
+    <link rel="dns-prefetch" href="//www.gstatic.com">
+
     <!-- ENGINE -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
@@ -122,7 +130,7 @@
 
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js?v=5', { scope: './' })
+                navigator.serviceWorker.register('./sw.js?v=6', { scope: './' })
                     .catch(err => console.warn('Service worker register skipped:', err));
             });
         }
@@ -660,6 +668,18 @@
             );
         };
 
+        const StartupLoading = () => (
+            <div className="h-screen w-full flex flex-col items-center justify-center bg-zinc-950 text-center">
+                <div className="w-16 h-16 bg-zinc-900 rounded-2xl flex items-center justify-center border border-zinc-800 shadow-lg mb-4">
+                    <TabungIcon size={38} className="text-indigo-500" />
+                </div>
+                <p className="text-zinc-300 text-sm font-bold">Memuat data...</p>
+                <div className="w-24 h-1 mt-3 rounded-full bg-zinc-800 overflow-hidden">
+                    <div className="w-1/2 h-full rounded-full bg-indigo-500 animate-pulse"></div>
+                </div>
+            </div>
+        );
+
         // --- MAIN APP ---
         const MainApp = ({ config }) => {
             if (!firebase.apps.length) firebase.initializeApp(config);
@@ -668,21 +688,79 @@
             const [view, setView] = useState('home');
             const [customers, setCustomers] = useState([]);
             const [queueIds, setQueueIds] = useState([]);
+            const [startupReady, setStartupReady] = useState(false);
             const customerRandomRanks = useRef(new Map());
 
             useEffect(() => {
-                auth.setPersistence(firebase.auth.Auth.Persistence.NONE).then(() => auth.signInAnonymously()).catch(e => console.error("Auth Fail", e));
-                db.collection(COL_CUSTOMERS).onSnapshot(s => {
-                    const nextCustomers = s.docs.map(d => ({ id: d.id, ...d.data() }));
-                    nextCustomers.forEach(c => {
-                        if (!customerRandomRanks.current.has(c.id)) customerRandomRanks.current.set(c.id, Math.random());
+                let active = true;
+                let listenersStarted = false;
+                let signingIn = false;
+                let unsubscribeAuth = null;
+                let unsubscribeCustomers = null;
+                let unsubscribeQueue = null;
+
+                const startFirestoreListeners = () => {
+                    if (!active || listenersStarted) return;
+                    listenersStarted = true;
+
+                    unsubscribeCustomers = db.collection(COL_CUSTOMERS).onSnapshot(s => {
+                        const nextCustomers = s.docs.map(d => ({ id: d.id, ...d.data() }));
+                        nextCustomers.forEach(c => {
+                            if (!customerRandomRanks.current.has(c.id)) customerRandomRanks.current.set(c.id, Math.random());
+                        });
+                        setCustomers(nextCustomers);
+                        if (active) setStartupReady(true);
+                    }, e => {
+                        console.error("Customer listener failed", e);
+                        if (active) setStartupReady(true);
                     });
-                    setCustomers(nextCustomers);
-                });
-                db.collection('system').doc(DOC_QUEUE).onSnapshot(s => {
-                    if (s.exists) setQueueIds(s.data().ids || []);
-                    else db.collection('system').doc(DOC_QUEUE).set({ ids: [] });
-                });
+
+                    unsubscribeQueue = db.collection('system').doc(DOC_QUEUE).onSnapshot(s => {
+                        if (s.exists) setQueueIds(s.data().ids || []);
+                        else db.collection('system').doc(DOC_QUEUE).set({ ids: [] });
+                    }, e => console.error("Queue listener failed", e));
+                };
+
+                const initialize = async () => {
+                    try {
+                        await db.enablePersistence({ synchronizeTabs: true });
+                    } catch (e) {
+                        console.warn("Firestore offline cache unavailable; continuing online.", e);
+                    }
+
+                    if (!active) return;
+
+                    try {
+                        await auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+                    } catch (e) {
+                        console.warn("Local auth persistence unavailable; continuing with current auth state.", e);
+                    }
+
+                    if (!active) return;
+
+                    unsubscribeAuth = auth.onAuthStateChanged(user => {
+                        if (user) {
+                            startFirestoreListeners();
+                            return;
+                        }
+
+                        if (signingIn) return;
+                        signingIn = true;
+                        auth.signInAnonymously().catch(e => {
+                            console.error("Auth Fail", e);
+                            if (active) setStartupReady(true);
+                        }).finally(() => { signingIn = false; });
+                    });
+                };
+
+                initialize();
+
+                return () => {
+                    active = false;
+                    if (unsubscribeAuth) unsubscribeAuth();
+                    if (unsubscribeCustomers) unsubscribeCustomers();
+                    if (unsubscribeQueue) unsubscribeQueue();
+                };
             }, []);
 
             const toggleQueue = async (c) => {
@@ -717,6 +795,8 @@
                 { id: 'report', icon: 'rocket', label: 'SETOR', badge: queueIds.length },
                 { id: 'db', icon: 'db', label: 'DATA' },
             ];
+
+            if (!startupReady) return <StartupLoading />;
 
             return (
                 <div className="h-screen w-full md:max-w-6xl mx-auto flex flex-col relative overflow-hidden bg-zinc-950 md:border-x md:border-zinc-800">
