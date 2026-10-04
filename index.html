@@ -41,6 +41,14 @@
         @keyframes popIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
         .animate-pop { animation: popIn 0.15s ease-out; }
         .pb-safe { padding-bottom: max(12px, env(safe-area-inset-bottom)); }
+
+        /* Dark Melon LPG palette: keep neutral darkness with a soft green undertone. */
+        body { background-color: #090b0a; }
+        .bg-zinc-950 { background-color: #090b0a; }
+        .bg-zinc-900 { background-color: #111512; }
+        .bg-zinc-800 { background-color: #171c18; }
+        .border-zinc-800 { border-color: #283129; }
+        .border-zinc-700 { border-color: #364038; }
     </style>
 
     <script>
@@ -77,7 +85,7 @@
 
             // Rounded background
             const r = size * 0.18;
-            ctx.fillStyle = '#09090b';
+            ctx.fillStyle = '#090b0a';
             ctx.beginPath();
             ctx.moveTo(r, 0); ctx.lineTo(size-r, 0);
             ctx.quadraticCurveTo(size, 0, size, r);
@@ -104,14 +112,14 @@
                 ctx.closePath();
             }
 
-            ctx.fillStyle = '#6366f1'; rr(14,44,52,62,10); ctx.fill();
-            ctx.fillStyle = '#4f46e5'; ctx.beginPath(); ctx.ellipse(40,106,26,8,0,0,Math.PI*2); ctx.fill();
-            ctx.fillStyle = '#818cf8'; ctx.beginPath(); ctx.ellipse(40,44,26,8,0,0,Math.PI*2); ctx.fill();
-            ctx.fillStyle = '#4338ca'; rr(28,26,24,20,5); ctx.fill();
-            ctx.fillStyle = '#3730a3'; rr(32,14,16,14,4); ctx.fill();
-            ctx.fillStyle = '#312e81'; rr(22,20,36,5,2.5); ctx.fill();
+            ctx.fillStyle = '#4f8f5b'; rr(14,44,52,62,10); ctx.fill();
+            ctx.fillStyle = '#3d7147'; ctx.beginPath(); ctx.ellipse(40,106,26,8,0,0,Math.PI*2); ctx.fill();
+            ctx.fillStyle = '#86c991'; ctx.beginPath(); ctx.ellipse(40,44,26,8,0,0,Math.PI*2); ctx.fill();
+            ctx.fillStyle = '#467e50'; rr(28,26,24,20,5); ctx.fill();
+            ctx.fillStyle = '#315b39'; rr(32,14,16,14,4); ctx.fill();
+            ctx.fillStyle = '#24462b'; rr(22,20,36,5,2.5); ctx.fill();
             ctx.fillStyle = 'rgba(255,255,255,0.2)'; rr(19,52,8,46,4); ctx.fill();
-            ctx.fillStyle = '#4f46e5'; ctx.fillRect(14,94,52,8);
+            ctx.fillStyle = '#3d7147'; ctx.fillRect(14,94,52,8);
             ctx.fillStyle = 'white'; ctx.font = '900 13px "Arial Black",Arial';
             ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('3kg', 40, 81);
 
@@ -203,6 +211,7 @@
                 trash: "M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16",
                 x: "M6 18L18 6M6 6l12 12",
                 pencil: "M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z",
+                power: "M12 2v10m6.364-6.364a9 9 0 11-12.728 0",
                 star: "M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
             };
             if (filled && name === 'star') {
@@ -222,6 +231,15 @@
         // --- KASIR VIEW ---
         const HomeView = ({ customers, queueIds, customerRandomRanks, db, toggleQueue, toggleFavorit, resetSession, resetApp }) => {
             const [searchTerm, setSearchTerm] = useState('');
+            const [menuOpen, setMenuOpen] = useState(false);
+            const menuRef = useRef(null);
+
+            useEffect(() => {
+                const closeMenu = e => { if (menuRef.current && !menuRef.current.contains(e.target)) setMenuOpen(false); };
+                document.addEventListener('mousedown', closeMenu);
+                document.addEventListener('touchstart', closeMenu);
+                return () => { document.removeEventListener('mousedown', closeMenu); document.removeEventListener('touchstart', closeMenu); };
+            }, []);
 
             const processedData = customers.filter(c =>
                 (c.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -250,46 +268,58 @@
                         <div className="flex justify-between items-center mb-3">
                             <div className="flex items-center gap-3">
                                 <div className="w-10 h-10 bg-zinc-900 rounded-xl flex items-center justify-center border border-zinc-700 shadow-lg">
-                                    <TabungIcon size={28} className="text-indigo-500" />
+                                    <TabungIcon size={28} className="text-[#4f8f5b]" />
                                 </div>
                                 <div>
                                     <h1 className="text-white font-black text-lg leading-none tracking-tight">Agen Gas Pro</h1>
                                     <p className="text-zinc-500 text-[10px] font-medium">Kasir & Antrian LPG 3kg</p>
                                 </div>
                             </div>
-                            <div className="flex gap-1.5">
-                                <button onClick={resetSession} className="text-[10px] bg-zinc-800 text-zinc-300 px-2.5 py-1.5 rounded-lg font-bold border border-zinc-700">RESET MINGGU</button>
-                                <button onClick={resetApp} className="text-[10px] text-zinc-600 border border-zinc-800 px-2.5 py-1.5 rounded-lg font-bold">LOGOUT</button>
+                            <div className="relative" ref={menuRef}>
+                                <button onClick={() => setMenuOpen(!menuOpen)} aria-label="Menu aplikasi" className="w-10 h-10 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-300 text-xl leading-none flex items-center justify-center shadow-sm active:scale-95 transition-all">
+                                    ⋮
+                                </button>
+                                {menuOpen && (
+                                    <div className="absolute right-0 top-12 z-40 w-56 bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl shadow-black/40 p-1.5 animate-pop">
+                                        <button onClick={() => { setMenuOpen(false); resetSession(); }} className="w-full px-3 py-3 rounded-xl flex items-center gap-2.5 text-left text-xs font-bold text-zinc-200 hover:bg-zinc-800 active:scale-[0.98] transition-all">
+                                            <Icon name="refresh" size={15} className="text-[#86c991]" /> Mulai Minggu Baru
+                                        </button>
+                                        <div className="h-px bg-zinc-800 my-1"></div>
+                                        <button onClick={() => { setMenuOpen(false); resetApp(); }} className="w-full px-3 py-3 rounded-xl flex items-center gap-2.5 text-left text-xs font-bold text-zinc-400 hover:bg-zinc-800 hover:text-red-400 active:scale-[0.98] transition-all">
+                                            <Icon name="power" size={15} /> Keluar / Ganti Lisensi
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                         </div>
 
                         {/* STATS */}
                         <div className="flex gap-2 mb-3">
-                            <div className="flex-1 bg-zinc-900 rounded-xl p-2.5 flex items-center gap-2 border border-zinc-800">
-                                <div className="w-7 h-7 bg-indigo-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
-                                    <Icon name="cart" size={14} className="text-indigo-400" />
+                            <div className="flex-1 bg-zinc-900 rounded-xl p-3 flex items-center gap-2 border border-zinc-800 shadow-sm">
+                                <div className="w-8 h-8 bg-[#4f8f5b]/15 rounded-lg flex items-center justify-center flex-shrink-0">
+                                    <Icon name="cart" size={14} className="text-[#86c991]" />
                                 </div>
                                 <div>
-                                    <p className="text-indigo-400 font-black text-base leading-none">{qCount}</p>
-                                    <p className="text-zinc-600 text-[9px] font-bold uppercase">Antrian</p>
+                                    <p className="text-[#86c991] font-black text-lg leading-none">{qCount}</p>
+                                    <p className="text-zinc-600 text-[8px] font-black tracking-wider uppercase">Antrian</p>
                                 </div>
                             </div>
-                            <div className="flex-1 bg-zinc-900 rounded-xl p-2.5 flex items-center gap-2 border border-zinc-800">
-                                <div className="w-7 h-7 bg-emerald-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <div className="flex-1 bg-zinc-900 rounded-xl p-3 flex items-center gap-2 border border-zinc-800 shadow-sm">
+                                <div className="w-8 h-8 bg-emerald-500/15 rounded-lg flex items-center justify-center flex-shrink-0">
                                     <Icon name="check" size={14} className="text-emerald-400" />
                                 </div>
                                 <div>
-                                    <p className="text-emerald-400 font-black text-base leading-none">{doneCount}</p>
-                                    <p className="text-zinc-600 text-[9px] font-bold uppercase">Selesai</p>
+                                    <p className="text-emerald-400 font-black text-lg leading-none">{doneCount}</p>
+                                    <p className="text-zinc-600 text-[8px] font-black tracking-wider uppercase">Selesai</p>
                                 </div>
                             </div>
-                            <div className="flex-1 bg-zinc-900 rounded-xl p-2.5 flex items-center gap-2 border border-zinc-800">
-                                <div className="w-7 h-7 bg-blue-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
-                                    <Icon name="db" size={14} className="text-blue-400" />
+                            <div className="flex-1 bg-zinc-900 rounded-xl p-3 flex items-center gap-2 border border-zinc-800 shadow-sm">
+                                <div className="w-8 h-8 bg-emerald-950/40 rounded-lg flex items-center justify-center flex-shrink-0">
+                                    <Icon name="db" size={14} className="text-emerald-200" />
                                 </div>
                                 <div>
-                                    <p className="text-blue-400 font-black text-base leading-none">{customers.length}</p>
-                                    <p className="text-zinc-600 text-[9px] font-bold uppercase">Total</p>
+                                    <p className="text-emerald-200 font-black text-lg leading-none">{customers.length}</p>
+                                    <p className="text-zinc-600 text-[8px] font-black tracking-wider uppercase">Total</p>
                                 </div>
                             </div>
                         </div>
@@ -300,7 +330,7 @@
                                 <Icon name="search" size={16} />
                             </div>
                             <input type="text" placeholder="Cari nama atau NIK..."
-                                className="w-full pl-9 pr-4 py-2.5 bg-zinc-900 border border-zinc-800 text-zinc-100 placeholder-zinc-600 rounded-xl text-sm outline-none focus:border-indigo-500 transition-colors"
+                                className="w-full pl-9 pr-4 py-2.5 bg-zinc-900 border border-zinc-800 text-zinc-100 placeholder-zinc-600 rounded-xl text-sm outline-none focus:border-[#4f8f5b] transition-colors"
                                 value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
                         </div>
                     </div>
@@ -325,13 +355,13 @@
                                 let avatarBg = "bg-zinc-800 text-zinc-400";
                                 let nameCls = "text-zinc-100";
 
-                                if (inQueue) { cardBg = "bg-emerald-950/60 border-emerald-800/70"; avatarBg = "bg-emerald-600 text-white"; nameCls = "text-emerald-300"; }
-                                else if (isFav && !isDone && !isFull) { cardBg = "bg-indigo-950/50 border-indigo-800/60"; avatarBg = "bg-indigo-500 text-white"; nameCls = "text-indigo-300"; }
+                                if (inQueue) { cardBg = "bg-emerald-950/60 border-emerald-800/70"; avatarBg = "bg-[#4f8f5b] text-white"; nameCls = "text-emerald-200"; }
+                                else if (isFav && !isDone && !isFull) { cardBg = "bg-emerald-950/35 border-emerald-800/45"; avatarBg = "bg-[#4f8f5b] text-white"; nameCls = "text-[#86c991]"; }
                                 else if (isFull) { cardBg = "bg-red-950/40 border-red-900/50"; avatarBg = "bg-red-900/60 text-red-400"; nameCls = "text-red-400"; }
                                 else if (isDone) { cardBg = "bg-zinc-900/50 border-zinc-800/50"; nameCls = "text-zinc-500"; avatarBg = "bg-zinc-800/50 text-zinc-600"; }
 
                                 return (
-                                    <div key={c.id} className={`border rounded-2xl transition-all animate-fade-in overflow-hidden ${cardBg} ${(isDone || isFull) && !inQueue ? 'opacity-60' : ''}`}>
+                                    <div key={c.id} className={`border rounded-2xl transition-all duration-200 hover:-translate-y-0.5 animate-fade-in overflow-hidden ${cardBg} ${(isDone || isFull) && !inQueue ? 'opacity-60' : ''}`}>
                                         <div className="flex items-center p-3 gap-3 cursor-pointer active:scale-[0.98] transition-transform" onClick={() => toggleQueue(c)}>
                                             {/* AVATAR */}
                                             <div className={`w-11 h-11 rounded-xl flex items-center justify-center font-black text-lg flex-shrink-0 ${avatarBg}`}>
@@ -340,16 +370,22 @@
 
                                             {/* INFO */}
                                             <div className="flex-1 min-w-0">
-                                                <div className="flex items-center gap-1.5 mb-0.5">
-                                                    {isFav && <Icon name="star" size={11} filled className="text-indigo-500 flex-shrink-0" />}
-                                                    <span className={`font-bold text-sm truncate ${nameCls}`}>{c.name}</span>
-                                                    {isDone && !inQueue && <span className="text-[9px] bg-zinc-800 text-zinc-500 px-1.5 py-0.5 rounded-full font-bold flex-shrink-0 border border-zinc-700">Selesai</span>}
+                                                <div className="flex items-center gap-1.5">
+                                                    {isFav && <Icon name="star" size={11} filled className="text-[#86c991] flex-shrink-0" />}
+                                                    <span className={`font-black text-sm truncate ${nameCls}`}>{c.name}</span>
                                                 </div>
-                                                <div className="text-zinc-600 text-xs font-mono">{c.nik}</div>
-                                                <div className="text-amber-500/75 text-[10px] font-mono mb-1.5">Lahir: {getBirthDateFromNik(c.nik)?.display || '-'}</div>
+                                                <div className="mt-1 mb-1.5">
+                                                    {inQueue ? <span className="inline-flex text-[8px] uppercase tracking-wider bg-emerald-500/15 text-emerald-400 px-1.5 py-0.5 rounded-md font-black border border-emerald-800/50">Antrian</span>
+                                                        : isFull ? <span className="inline-flex text-[8px] uppercase tracking-wider bg-red-500/10 text-red-400 px-1.5 py-0.5 rounded-md font-black border border-red-900/60">Kuota Habis</span>
+                                                        : isDone ? <span className="inline-flex text-[8px] uppercase tracking-wider bg-zinc-800 text-zinc-400 px-1.5 py-0.5 rounded-md font-black border border-zinc-700">Selesai Minggu Ini</span>
+                                                        : isFav ? <span className="inline-flex text-[8px] uppercase tracking-wider bg-[#4f8f5b]/10 text-[#86c991] px-1.5 py-0.5 rounded-md font-black border border-emerald-800/50">★ Favorit</span>
+                                                        : null}
+                                                </div>
+                                                <div className="text-zinc-500 text-xs font-mono">{c.nik}</div>
+                                                <div className="text-amber-400/60 text-[10px] font-mono mb-1.5">Lahir: {getBirthDateFromNik(c.nik)?.display || '-'}</div>
                                                 <div className="flex items-center gap-1">
                                                     {[...Array(4)].map((_, i) => (
-                                                        <div key={i} className={`h-1 flex-1 rounded-full transition-colors ${i < (c.quota || 0) ? (isFull ? 'bg-red-500' : 'bg-indigo-500') : 'bg-zinc-700'}`} />
+                                                        <div key={i} className={`h-1 flex-1 rounded-full transition-colors ${i < (c.quota || 0) ? (isFull ? 'bg-red-500' : 'bg-[#4f8f5b]') : 'bg-zinc-700'}`} />
                                                     ))}
                                                     <span className="text-[9px] text-zinc-600 font-bold ml-1">{c.quota || 0}/4</span>
                                                 </div>
@@ -361,16 +397,16 @@
                                                     ? <div className="w-9 h-9 bg-emerald-600 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-900/50"><Icon name="check" size={18} className="text-white" /></div>
                                                     : isFull
                                                         ? <span className="text-[10px] font-black text-red-400 bg-red-950/60 border border-red-900/50 px-2 py-1.5 rounded-xl">PENUH</span>
-                                                        : <div className="w-9 h-9 bg-indigo-500/20 border border-indigo-500/30 rounded-xl flex items-center justify-center"><Icon name="plus" size={18} className="text-indigo-400" /></div>
+                                                        : <div className="w-9 h-9 bg-[#4f8f5b]/15 border border-emerald-800/50 rounded-xl flex items-center justify-center"><Icon name="plus" size={18} className="text-[#86c991]" /></div>
                                                 }
                                             </div>
                                         </div>
 
                                         {/* FAVORITE TOGGLE */}
                                         <button onClick={e => { e.stopPropagation(); toggleFavorit(c); }}
-                                            className={`w-full border-t py-1.5 flex items-center justify-center gap-1.5 text-[10px] font-bold transition-colors ${isFav ? 'border-indigo-900/50 bg-indigo-950/40 text-indigo-500' : 'border-zinc-800 text-zinc-700 hover:text-indigo-500 hover:bg-indigo-950/20'}`}>
+                                            className={`w-full border-t py-1.5 flex items-center justify-center gap-1.5 text-[10px] font-bold transition-colors ${isFav ? 'border-emerald-900/50 bg-emerald-950/35 text-[#86c991]' : 'border-zinc-800 text-zinc-700 hover:text-[#86c991] hover:bg-emerald-950/20'}`}>
                                             <Icon name="star" size={11} filled={isFav} />
-                                            {isFav ? 'FAVORIT ★' : 'TANDAI FAVORIT'}
+                                            {isFav ? 'Favorit' : 'Jadikan Favorit'}
                                         </button>
                                     </div>
                                 );
@@ -381,14 +417,14 @@
                     {/* FLOATING BUTTON */}
                     {qCount > 0 && (
                         <div onClick={() => document.getElementById('btn-report').click()}
-                            className="absolute bottom-20 left-3 right-3 md:left-auto md:right-8 md:bottom-24 md:w-96 bg-indigo-500 text-white p-4 rounded-2xl shadow-2xl shadow-indigo-950/80 flex justify-between items-center cursor-pointer z-30 active:scale-95 transition-transform animate-fade-in">
+                            className="absolute bottom-20 left-3 right-3 md:left-auto md:right-8 md:bottom-24 md:w-96 bg-[#4f8f5b] text-white p-4 rounded-2xl shadow-2xl shadow-emerald-950/50 flex justify-between items-center cursor-pointer z-30 active:scale-95 transition-transform animate-fade-in">
                             <div className="flex items-center gap-3">
                                 <div className="bg-black/20 w-10 h-10 rounded-xl flex items-center justify-center">
                                     <Icon name="cart" size={20} />
                                 </div>
                                 <div>
                                     <p className="font-black text-lg leading-none">{qCount} Antrian</p>
-                                    <p className="text-indigo-200 text-[11px]">Tap untuk proses setor</p>
+                                    <p className="text-emerald-100/80 text-[11px]">Tap untuk proses setor</p>
                                 </div>
                             </div>
                             <div className="bg-black/25 px-4 py-2 rounded-xl font-black text-sm flex items-center gap-1.5">
@@ -425,15 +461,15 @@
                         <div className="flex justify-between items-center">
                             <div className="flex items-center gap-2.5">
                                 <div className="w-10 h-10 bg-zinc-900 rounded-xl flex items-center justify-center border border-zinc-700">
-                                    <TabungIcon size={28} className="text-indigo-500" />
+                                    <TabungIcon size={28} className="text-[#4f8f5b]" />
                                 </div>
                                 <div>
                                     <h2 className="font-black text-white text-lg leading-none">Proses Setor</h2>
                                     <p className="text-zinc-500 text-[10px] font-medium">Copy NIK ke aplikasi GAS</p>
                                 </div>
                             </div>
-                            <div className="bg-indigo-500/10 border border-indigo-500/25 px-3 py-1.5 rounded-xl">
-                                <span className="text-indigo-400 font-black text-base">{queueIds.length}</span>
+                            <div className="bg-[#4f8f5b]/10 border border-emerald-800/40 px-3 py-1.5 rounded-xl">
+                                <span className="text-[#86c991] font-black text-base">{queueIds.length}</span>
                                 <span className="text-zinc-600 text-[10px] font-bold ml-1">antrian</span>
                             </div>
                         </div>
@@ -451,28 +487,28 @@
                         ) : (
                             <div className="w-full max-w-md animate-fade-in space-y-4">
                                 {/* CURRENT CARD */}
-                                <div className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden shadow-2xl">
-                                    <div className="bg-indigo-500 px-4 py-2.5 flex justify-between items-center">
+                                <div className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden shadow-xl shadow-black/30">
+                                    <div className="bg-[#4f8f5b] px-4 py-2.5 flex justify-between items-center">
                                         <span className="text-white font-black text-xs uppercase tracking-wider">⚡ Sedang Diproses</span>
-                                        <span className="text-indigo-100 text-xs font-mono font-bold">Kuota: {(current?.quota || 0)}/4</span>
+                                        <span className="text-emerald-100 text-xs font-mono font-bold">Kuota: {(current?.quota || 0)}/4</span>
                                     </div>
                                     <div className="p-5">
                                         <div className="flex items-center gap-3 mb-5">
-                                            <div className="w-14 h-14 bg-indigo-500/15 border border-indigo-500/30 rounded-xl flex items-center justify-center font-black text-3xl text-indigo-400 flex-shrink-0">
+                                            <div className="w-14 h-14 bg-[#4f8f5b]/15 border border-emerald-800/50 rounded-xl flex items-center justify-center font-black text-3xl text-[#86c991] flex-shrink-0">
                                                 {(current?.name || '?').charAt(0)}
                                             </div>
                                             <div className="flex-1 min-w-0">
                                                 <h2 className="text-xl font-black text-zinc-100 truncate">{current?.name}</h2>
                                                 <div className="flex gap-1 mt-2">
                                                     {[...Array(4)].map((_, i) => (
-                                                        <div key={i} className={`h-2 w-8 rounded-full ${i < (current?.quota || 0) ? 'bg-indigo-500' : 'bg-zinc-700'}`} />
+                                                        <div key={i} className={`h-2 w-8 rounded-full ${i < (current?.quota || 0) ? 'bg-[#4f8f5b]' : 'bg-zinc-700'}`} />
                                                     ))}
                                                 </div>
                                             </div>
                                         </div>
 
                                         {/* NIK BOX */}
-                                        <div className="bg-zinc-950 border-2 border-dashed border-zinc-700 rounded-2xl p-4 text-center mb-5">
+                                        <div className="bg-zinc-950 border border-zinc-700 rounded-2xl p-4 text-center mb-5 shadow-inner shadow-black/20">
                                             <p className="text-[10px] text-zinc-600 font-black uppercase tracking-widest mb-1">NIK</p>
                                             <span className="font-mono text-2xl font-black tracking-widest text-zinc-100">{current?.nik}</span>
                                             <div className="border-t border-zinc-800 mt-3 pt-3">
@@ -486,7 +522,7 @@
 
                                         {!lastCopied ? (
                                             <button onClick={() => handleCopy(current)}
-                                                className="w-full bg-indigo-500 active:scale-95 text-white font-black py-4 rounded-xl flex justify-center items-center gap-2 shadow-lg shadow-indigo-950 transition-all animate-pulse">
+                                                className="w-full bg-[#4f8f5b] hover:bg-[#65a96f] active:scale-95 text-white font-black py-4 rounded-xl flex justify-center items-center gap-2 shadow-lg shadow-emerald-950/40 transition-all animate-pulse">
                                                 <Icon name="copy" size={20} /> 1. COPY NIK
                                             </button>
                                         ) : (
@@ -510,7 +546,7 @@
                                         {queueIds.slice(1, 4).map((qid, i) => {
                                             const c = customers.find(x => x.id === qid);
                                             return c ? (
-                                                <div key={qid} className="bg-zinc-900 border border-zinc-800 p-3 rounded-xl flex items-center gap-3 animate-fade-in">
+                                                    <div key={qid} className="bg-zinc-900/80 border border-zinc-800 p-2.5 rounded-xl flex items-center gap-3 animate-fade-in">
                                                     <div className="w-8 h-8 bg-zinc-800 rounded-lg flex items-center justify-center font-black text-zinc-500 text-sm flex-shrink-0">{i + 2}</div>
                                                     <div className="flex-1 min-w-0">
                                                         <p className="text-zinc-200 font-bold text-sm truncate">{c.name}</p>
@@ -537,6 +573,7 @@
         const DbView = ({ customers, db, queueIds, toggleFavorit }) => {
             const [form, setForm] = useState({ name: '', nik: '' });
             const [editId, setEditId] = useState(null);
+            const [formOpen, setFormOpen] = useState(false);
             const [saving, setSaving] = useState(false);
             const [dbSearch, setDbSearch] = useState('');
 
@@ -550,6 +587,7 @@
                     if (editId) { await db.collection(COL_CUSTOMERS).doc(editId).update(d); setEditId(null); }
                     else { if (customers.some(c => String(c.nik).replace(/\D/g, '') === cleanNik)) throw new Error("NIK sudah ada!"); await db.collection(COL_CUSTOMERS).add({ ...d, quota: 0, lastTx: '-', favorit: false }); }
                     setForm({ name: '', nik: '' });
+                    setFormOpen(false);
                     alert("Sukses!");
                 } catch (e) { alert(e.message); }
                 setSaving(false);
@@ -578,76 +616,55 @@
                         <div className="flex justify-between items-center mb-3">
                             <div className="flex items-center gap-2.5">
                                 <div className="w-10 h-10 bg-zinc-900 rounded-xl flex items-center justify-center border border-zinc-700">
-                                    <Icon name="db" size={18} className="text-blue-400" />
+                                    <Icon name="db" size={18} className="text-emerald-200" />
                                 </div>
                                 <div>
                                     <h2 className="font-black text-white text-lg leading-none">Database</h2>
                                     <p className="text-zinc-500 text-[10px] font-medium">{customers.length} pelanggan · {favCount} favorit</p>
                                 </div>
                             </div>
-                            <button onClick={resetMonthly} className="text-[10px] bg-red-950/40 text-red-400 px-3 py-1.5 rounded-lg font-bold border border-red-900/50 flex items-center gap-1">
-                                <Icon name="refresh" size={11} /> RESET KUOTA
-                            </button>
+                            <div className="flex items-center gap-2">
+                                <button onClick={() => { setEditId(null); setForm({ name: '', nik: '' }); setFormOpen(true); }} className="text-[10px] bg-[#4f8f5b] hover:bg-[#65a96f] text-white px-3 py-2 rounded-xl font-black flex items-center gap-1.5 active:scale-95 transition-all shadow-sm shadow-emerald-950/40">
+                                    <Icon name="plus" size={13} /> <span className="hidden sm:inline">TAMBAH </span>PELANGGAN
+                                </button>
+                                <button onClick={resetMonthly} aria-label="Reset kuota" className="w-9 h-9 bg-red-950/40 text-red-400 rounded-xl font-bold border border-red-900/50 flex items-center justify-center active:scale-95 transition-all">
+                                    <Icon name="refresh" size={13} />
+                                </button>
+                            </div>
                         </div>
                         <div className="relative">
                             <div className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-600"><Icon name="search" size={16} /></div>
                             <input placeholder="Cari data pelanggan..."
-                                className="w-full pl-9 pr-3 py-2.5 bg-zinc-900 border border-zinc-800 text-zinc-100 placeholder-zinc-600 rounded-xl text-sm outline-none focus:border-blue-500 transition-colors"
+                                className="w-full pl-9 pr-3 py-2.5 bg-zinc-900 border border-zinc-800 text-zinc-100 placeholder-zinc-600 rounded-xl text-sm outline-none focus:border-[#4f8f5b] transition-colors"
                                 value={dbSearch} onChange={e => setDbSearch(e.target.value)} />
                         </div>
                     </div>
 
                     <div className="flex-1 overflow-y-auto p-4 pb-28 no-scrollbar">
-                        {/* FORM */}
-                        <div className={`rounded-2xl border p-4 mb-5 ${editId ? 'bg-amber-950/30 border-amber-800/50' : 'bg-zinc-900 border-zinc-800'}`}>
-                            <h3 className="font-black text-sm mb-3 text-zinc-300">{editId ? '✏️ Edit Pelanggan' : '➕ Tambah Pelanggan Baru'}</h3>
-                            <input placeholder="Nama Lengkap"
-                                className="w-full p-3 bg-zinc-950 border border-zinc-800 text-zinc-100 placeholder-zinc-600 rounded-xl mb-2 outline-none focus:border-blue-500 transition-colors text-sm"
-                                value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />
-                            <input placeholder="NIK (16 digit)" inputMode="numeric" maxLength={16}
-                                className="w-full p-3 bg-zinc-950 border border-zinc-800 text-zinc-100 placeholder-zinc-600 rounded-xl mb-2 outline-none focus:border-blue-500 transition-colors text-sm font-mono"
-                                value={form.nik} onChange={e => setForm({ ...form, nik: e.target.value.replace(/\D/g, '').slice(0, 16) })} />
-                            {form.nik && (
-                                <div className={`mb-3 px-3 py-2.5 rounded-xl border ${getBirthDateFromNik(form.nik) ? 'bg-amber-950/20 border-amber-800/40' : 'bg-red-950/20 border-red-900/40'}`}>
-                                    <p className="text-[9px] text-zinc-600 font-black uppercase tracking-widest">Tanggal Lahir dari NIK</p>
-                                    <p className={`font-mono text-base font-black mt-0.5 ${getBirthDateFromNik(form.nik) ? 'text-amber-300' : 'text-red-400'}`}>
-                                        {getBirthDateFromNik(form.nik)?.display || 'Lengkapi NIK yang valid'}
-                                    </p>
-                                </div>
-                            )}
-                            <div className="flex gap-2">
-                                <button onClick={handleSave} disabled={saving}
-                                    className={`flex-1 py-3 rounded-xl font-black text-white text-sm active:scale-95 transition-all ${editId ? 'bg-amber-500' : 'bg-blue-600'}`}>
-                                    {saving ? '...' : editId ? 'UPDATE' : 'SIMPAN'}
-                                </button>
-                                {editId && <button onClick={() => { setEditId(null); setForm({ name: '', nik: '' }); }} className="bg-zinc-800 text-zinc-300 px-5 rounded-xl font-black text-sm active:scale-95 border border-zinc-700">BATAL</button>}
-                            </div>
-                        </div>
-
                         {/* LIST */}
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
                             {filteredDb.map(c => (
-                                <div key={c.id} className={`bg-zinc-900 border rounded-2xl overflow-hidden transition-all ${c.favorit ? 'border-indigo-800/60' : 'border-zinc-800'}`}>
+                                <div key={c.id} className={`bg-zinc-900 border rounded-2xl overflow-hidden transition-all ${c.favorit ? 'border-emerald-800/55' : 'border-zinc-800'}`}>
                                     <div className="p-3 flex items-center gap-3">
-                                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-base flex-shrink-0 ${c.favorit ? 'bg-indigo-500 text-white' : 'bg-zinc-800 text-zinc-400'}`}>
+                                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-base flex-shrink-0 ${c.favorit ? 'bg-[#4f8f5b] text-white' : 'bg-zinc-800 text-zinc-400'}`}>
                                             {(c.name || '?').charAt(0)}
                                         </div>
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-center gap-1 mb-0.5">
-                                                {c.favorit && <Icon name="star" size={10} filled className="text-indigo-500 flex-shrink-0" />}
+                                                {c.favorit && <Icon name="star" size={10} filled className="text-[#86c991] flex-shrink-0" />}
                                                 <p className="font-bold text-sm truncate text-zinc-100">{c.name}</p>
                                             </div>
                                             <p className="text-xs text-zinc-600 font-mono">{c.nik}</p>
                                             <p className="text-[10px] text-amber-500/80 font-mono mt-0.5">Lahir: {getBirthDateFromNik(c.nik)?.display || '-'}</p>
                                             <div className="flex items-center gap-1 mt-1.5">
                                                 {[...Array(4)].map((_, i) => (
-                                                    <div key={i} className={`h-1 w-5 rounded-full ${i < (c.quota || 0) ? 'bg-indigo-500' : 'bg-zinc-700'}`} />
+                                                    <div key={i} className={`h-1 w-5 rounded-full ${i < (c.quota || 0) ? 'bg-[#4f8f5b]' : 'bg-zinc-700'}`} />
                                                 ))}
                                                 <span className={`text-[9px] font-black ml-1 ${(c.quota || 0) >= 4 ? 'text-red-400' : 'text-zinc-600'}`}>{c.quota || 0}/4</span>
                                             </div>
                                         </div>
                                         <div className="flex flex-col gap-1.5 flex-shrink-0">
-                                            <button onClick={() => { setForm({ name: c.name, nik: c.nik }); setEditId(c.id); }} className="w-8 h-8 bg-zinc-800 text-blue-400 rounded-lg flex items-center justify-center hover:bg-blue-950/50 transition-colors border border-zinc-700">
+                                            <button onClick={() => { setForm({ name: c.name, nik: c.nik }); setEditId(c.id); setFormOpen(true); }} className="w-8 h-8 bg-zinc-800 text-[#86c991] rounded-lg flex items-center justify-center hover:bg-emerald-950/40 active:scale-95 transition-all border border-zinc-700">
                                                 <Icon name="pencil" size={13} />
                                             </button>
                                             <button onClick={() => del(c.id)} className="w-8 h-8 bg-zinc-800 text-red-500 rounded-lg flex items-center justify-center hover:bg-red-950/50 transition-colors border border-zinc-700">
@@ -656,14 +673,51 @@
                                         </div>
                                     </div>
                                     <button onClick={() => toggleFavorit(c)}
-                                        className={`w-full border-t py-1.5 flex items-center justify-center gap-1.5 text-[10px] font-black transition-colors ${c.favorit ? 'border-indigo-900/50 bg-indigo-950/30 text-indigo-500' : 'border-zinc-800 text-zinc-700 hover:text-indigo-500 hover:bg-indigo-950/20'}`}>
+                                        className={`w-full border-t py-1.5 flex items-center justify-center gap-1.5 text-[10px] font-black transition-colors ${c.favorit ? 'border-emerald-900/50 bg-emerald-950/30 text-[#86c991]' : 'border-zinc-800 text-zinc-700 hover:text-[#86c991] hover:bg-emerald-950/20'}`}>
                                         <Icon name="star" size={11} filled={c.favorit} />
-                                        {c.favorit ? 'FAVORIT ★' : 'TANDAI FAVORIT'}
+                                        {c.favorit ? 'Favorit' : 'Jadikan Favorit'}
                                     </button>
                                 </div>
                             ))}
                         </div>
                     </div>
+
+                    {formOpen && (
+                        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 p-3 sm:p-6 animate-fade-in" onClick={() => { if (!saving) { setFormOpen(false); setEditId(null); setForm({ name: '', nik: '' }); } }}>
+                            <div className={`w-full max-w-md max-h-[calc(100vh-1.5rem)] overflow-y-auto rounded-2xl border p-5 shadow-2xl animate-pop ${editId ? 'bg-zinc-900 border-amber-800/60' : 'bg-zinc-900 border-zinc-700'}`} onClick={e => e.stopPropagation()}>
+                                <div className="flex items-start justify-between gap-4 mb-5">
+                                    <div>
+                                        <p className="text-[10px] font-black uppercase tracking-widest text-[#86c991]">Database Pelanggan</p>
+                                        <h3 className="font-black text-lg text-white mt-0.5">{editId ? 'Edit Pelanggan' : 'Tambah Pelanggan'}</h3>
+                                    </div>
+                                    <button onClick={() => { setFormOpen(false); setEditId(null); setForm({ name: '', nik: '' }); }} aria-label="Tutup form" className="w-9 h-9 rounded-xl bg-zinc-800 border border-zinc-700 text-zinc-400 flex items-center justify-center active:scale-95 transition-all">
+                                        <Icon name="x" size={16} />
+                                    </button>
+                                </div>
+                                <input placeholder="Nama Lengkap"
+                                    className="w-full p-3 bg-zinc-950 border border-zinc-800 text-zinc-100 placeholder-zinc-600 rounded-xl mb-2 outline-none focus:border-[#4f8f5b] transition-colors text-sm"
+                                    value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />
+                                <input placeholder="NIK 16 digit" inputMode="numeric" maxLength={16}
+                                    className="w-full p-3 bg-zinc-950 border border-zinc-800 text-zinc-100 placeholder-zinc-600 rounded-xl mb-2 outline-none focus:border-[#4f8f5b] transition-colors text-sm font-mono"
+                                    value={form.nik} onChange={e => setForm({ ...form, nik: e.target.value.replace(/\D/g, '').slice(0, 16) })} />
+                                {form.nik && (
+                                    <div className={`mb-4 px-3 py-2.5 rounded-xl border ${getBirthDateFromNik(form.nik) ? 'bg-amber-950/20 border-amber-800/40' : 'bg-red-950/20 border-red-900/40'}`}>
+                                        <p className="text-[9px] text-zinc-600 font-black uppercase tracking-widest">Tanggal Lahir dari NIK</p>
+                                        <p className={`font-mono text-base font-black mt-0.5 ${getBirthDateFromNik(form.nik) ? 'text-amber-300' : 'text-red-400'}`}>
+                                            {getBirthDateFromNik(form.nik)?.display || 'Lengkapi NIK yang valid'}
+                                        </p>
+                                    </div>
+                                )}
+                                <div className="flex gap-2">
+                                    <button onClick={handleSave} disabled={saving}
+                                        className={`flex-1 py-3 rounded-xl font-black text-white text-sm active:scale-95 transition-all ${editId ? 'bg-amber-500' : 'bg-[#4f8f5b] hover:bg-[#65a96f]'}`}>
+                                        {saving ? '...' : editId ? 'UPDATE' : 'SIMPAN'}
+                                    </button>
+                                    <button onClick={() => { setFormOpen(false); setEditId(null); setForm({ name: '', nik: '' }); }} className="bg-zinc-800 text-zinc-300 px-5 rounded-xl font-black text-sm active:scale-95 border border-zinc-700">BATAL</button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
             );
         };
@@ -671,11 +725,11 @@
         const StartupLoading = () => (
             <div className="h-screen w-full flex flex-col items-center justify-center bg-zinc-950 text-center">
                 <div className="w-16 h-16 bg-zinc-900 rounded-2xl flex items-center justify-center border border-zinc-800 shadow-lg mb-4">
-                    <TabungIcon size={38} className="text-indigo-500" />
+                    <TabungIcon size={38} className="text-[#4f8f5b]" />
                 </div>
                 <p className="text-zinc-300 text-sm font-bold">Memuat data...</p>
                 <div className="w-24 h-1 mt-3 rounded-full bg-zinc-800 overflow-hidden">
-                    <div className="w-1/2 h-full rounded-full bg-indigo-500 animate-pulse"></div>
+                    <div className="w-1/2 h-full rounded-full bg-[#4f8f5b] animate-pulse"></div>
                 </div>
             </div>
         );
@@ -811,13 +865,13 @@
                         {tabs.map(tab => (
                             <button key={tab.id} id={tab.id === 'report' ? 'btn-report' : undefined}
                                 onClick={() => setView(tab.id)}
-                                className={`flex flex-col items-center py-2 px-6 rounded-xl transition-all ${view === tab.id ? 'bg-indigo-500/10' : 'hover:bg-zinc-900'}`}>
+                                className={`flex flex-col items-center py-1.5 px-5 rounded-xl active:scale-95 transition-all ${view === tab.id ? 'bg-[#4f8f5b]/10 shadow-sm shadow-emerald-950/30' : 'hover:bg-zinc-900'}`}>
                                 <div className="relative mb-0.5">
-                                    <Icon name={tab.icon} size={22} className={view === tab.id ? 'text-indigo-400' : 'text-zinc-600'} />
+                                    <Icon name={tab.icon} size={22} className={view === tab.id ? 'text-[#86c991]' : 'text-zinc-600'} />
                                     {tab.badge > 0 && <span className="absolute -top-1 -right-2 bg-red-500 text-white text-[9px] w-4 h-4 rounded-full flex justify-center items-center font-black">{tab.badge}</span>}
                                 </div>
-                                <span className={`text-[10px] font-black ${view === tab.id ? 'text-indigo-400' : 'text-zinc-600'}`}>{tab.label}</span>
-                                {view === tab.id && <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 mt-0.5" />}
+                                <span className={`text-[10px] font-black ${view === tab.id ? 'text-[#86c991]' : 'text-zinc-600'}`}>{tab.label}</span>
+                                {view === tab.id && <div className="w-1 h-1 rounded-full bg-[#4f8f5b] mt-1" />}
                             </button>
                         ))}
                     </div>
@@ -836,23 +890,24 @@
             return (
                 <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center p-6">
                     <div className="w-28 h-28 bg-zinc-900 border border-zinc-800 rounded-3xl flex items-center justify-center mb-6 shadow-2xl">
-                        <TabungIcon size={72} className="text-indigo-500" />
+                        <TabungIcon size={72} className="text-[#4f8f5b]" />
                     </div>
                     <h1 className="text-white text-3xl font-black mb-1 tracking-tight">Agen Gas Pro</h1>
-                    <p className="text-zinc-500 text-sm mb-8 font-medium">Sistem Antrian & Kasir LPG 3kg</p>
-                    <div className="w-full max-w-sm bg-zinc-900 border border-zinc-800 p-6 rounded-2xl">
-                        <h2 className="text-white font-black mb-1 text-center">Aktivasi Lisensi</h2>
-                        <p className="text-zinc-600 text-xs text-center mb-4">Tempel kode lisensi dari agen</p>
-                        <textarea rows={4} placeholder="Kode lisensi..."
-                            className="w-full p-3 bg-zinc-950 border border-zinc-800 text-zinc-100 placeholder-zinc-700 rounded-xl mb-3 outline-none focus:border-indigo-500 transition-colors text-sm font-mono resize-none"
+                    <p className="text-zinc-500 text-sm mb-8 font-medium">Sistem Kasir & Antrian LPG 3kg</p>
+                    <div className="w-full max-w-sm bg-zinc-900 border border-zinc-800 p-6 rounded-2xl shadow-2xl shadow-black/30">
+                        <h2 className="text-white font-black mb-1 text-center">Aktivasi Agen Gas Pro</h2>
+                        <p className="text-zinc-500 text-xs text-center mb-5 leading-relaxed">Masukkan kode lisensi untuk mengaktifkan aplikasi pada perangkat ini.</p>
+                        <textarea rows={4} placeholder="Tempel kode lisensi di sini..."
+                            className="w-full p-3 bg-zinc-950 border border-zinc-800 text-zinc-100 placeholder-zinc-700 rounded-xl mb-3 outline-none focus:border-[#4f8f5b] transition-colors text-sm font-mono resize-none"
                             value={code} onChange={e => { setCode(e.target.value); setError(''); }}></textarea>
                         {error && <p className="text-red-400 text-xs text-center mb-3 font-bold">{error}</p>}
                         <button onClick={handleActivate}
-                            className="w-full bg-indigo-500 active:scale-95 text-white py-4 rounded-xl font-black text-sm transition-all shadow-lg shadow-indigo-950">
-                            AKTIFKAN
+                            className="w-full bg-[#4f8f5b] hover:bg-[#65a96f] active:scale-95 text-white py-4 rounded-xl font-black text-sm transition-all shadow-lg shadow-emerald-950/40">
+                            AKTIFKAN APLIKASI
                         </button>
                     </div>
-                    <p className="text-zinc-800 text-[11px] mt-6 font-medium">v4.0 PWA · Hubungi agen untuk mendapatkan kode</p>
+                    <p className="text-zinc-700 text-[11px] mt-6 font-medium">Lisensi diberikan oleh penyedia aplikasi</p>
+                    <p className="text-zinc-800 text-[10px] mt-1 font-medium">v4.0 PWA</p>
                 </div>
             );
         };
@@ -916,15 +971,15 @@
 
             if (manualGuide) return (
                 <div className="fixed bottom-20 left-3 right-3 z-50 animate-fade-in">
-                    <div className="bg-zinc-900 border border-indigo-800/60 rounded-2xl p-4 shadow-2xl">
+                    <div className="bg-zinc-900 border border-emerald-800/45 rounded-2xl p-4 shadow-2xl">
                         <div className="flex items-start gap-3">
                             <div className="w-10 h-10 bg-zinc-800 rounded-xl flex items-center justify-center border border-zinc-700 flex-shrink-0">
-                                <TabungIcon size={28} className="text-indigo-400" />
+                                <TabungIcon size={28} className="text-[#86c991]" />
                             </div>
                             <div className="flex-1">
                                 <p className="text-white font-black text-sm">Install Agen Gas Pro</p>
                                 <p className="text-zinc-400 text-xs mt-1 leading-relaxed">
-                                    Di Chrome Android, tap menu <span className="text-indigo-400 font-bold">⋮</span>, lalu pilih <span className="text-indigo-400 font-bold">Install app</span> atau <span className="text-indigo-400 font-bold">Add to Home screen</span>.
+                                    Di Chrome Android, tap menu <span className="text-[#86c991] font-bold">⋮</span>, lalu pilih <span className="text-[#86c991] font-bold">Install app</span> atau <span className="text-[#86c991] font-bold">Add to Home screen</span>.
                                 </p>
                             </div>
                             <button onClick={handleDismiss} className="text-zinc-600 hover:text-zinc-400 flex-shrink-0">
@@ -940,12 +995,12 @@
                     <div className="bg-zinc-900 border border-zinc-700 rounded-2xl p-4 shadow-2xl">
                         <div className="flex items-start gap-3">
                             <div className="w-10 h-10 bg-zinc-800 rounded-xl flex items-center justify-center border border-zinc-700 flex-shrink-0">
-                                <TabungIcon size={28} className="text-indigo-400" />
+                                <TabungIcon size={28} className="text-[#86c991]" />
                             </div>
                             <div className="flex-1">
                                 <p className="text-white font-black text-sm">Install ke Home Screen</p>
                                 <p className="text-zinc-400 text-xs mt-1 leading-relaxed">
-                                    Tap <span className="text-indigo-400 font-bold">⎙ Share</span> di browser Safari, lalu pilih <span className="text-indigo-400 font-bold">"Add to Home Screen"</span>
+                                    Tap <span className="text-[#86c991] font-bold">⎙ Share</span> di browser Safari, lalu pilih <span className="text-[#86c991] font-bold">"Add to Home Screen"</span>
                                 </p>
                             </div>
                             <button onClick={handleDismiss} className="text-zinc-600 hover:text-zinc-400 flex-shrink-0">
@@ -958,18 +1013,18 @@
 
             return (
                 <div className="fixed bottom-20 left-3 right-3 z-50 animate-fade-in">
-                    <div className="bg-indigo-950 border border-indigo-800/60 rounded-2xl shadow-2xl shadow-indigo-950 overflow-hidden">
+                    <div className="bg-emerald-950/60 border border-emerald-800/50 rounded-2xl shadow-2xl shadow-emerald-950/40 overflow-hidden">
                         <div className="flex items-center gap-3 p-4">
                             <div className="w-12 h-12 bg-zinc-900 rounded-xl flex items-center justify-center border border-zinc-800 flex-shrink-0">
-                                <TabungIcon size={34} className="text-indigo-400" />
+                                <TabungIcon size={34} className="text-[#86c991]" />
                             </div>
                             <div className="flex-1 min-w-0">
                                 <p className="text-white font-black text-sm leading-none mb-0.5">Install Agen Gas Pro</p>
-                                <p className="text-indigo-300 text-xs">Akses cepat dari layar utama HP</p>
+                                <p className="text-emerald-100/75 text-xs">Akses cepat dari layar utama HP</p>
                             </div>
                             <div className="flex items-center gap-2 flex-shrink-0">
                                 <button onClick={handleDismiss} className="text-zinc-600 hover:text-zinc-400 text-xs px-2 py-1 font-bold">Nanti</button>
-                                <button onClick={handleInstall} className="bg-indigo-500 text-white px-4 py-2 rounded-xl font-black text-xs active:scale-95 transition-all shadow-lg shadow-indigo-900">
+                                <button onClick={handleInstall} className="bg-[#4f8f5b] hover:bg-[#65a96f] text-white px-4 py-2 rounded-xl font-black text-xs active:scale-95 transition-all shadow-lg shadow-emerald-950/40">
                                     INSTALL
                                 </button>
                             </div>
